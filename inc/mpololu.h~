@@ -1,0 +1,78 @@
+/**
+ * @file   mpololu.h
+ * @Author kls (gbkletsko@gmail.com)
+ * @date   November, 2012
+ * @brief  API for communicating with Maestro Pololu.
+ *
+ */
+
+
+#ifndef MPOLOLU_H
+#define MPOLOLU_H
+
+
+/**************************************************************************/
+/*                            FUNCTION DECLARATIONS                       */
+/**************************************************************************/
+
+
+
+/** Common API */
+
+/**
+ * @brief Open serial interface
+ *  
+ *  @retval File desriptor of opened interface
+ */
+int maestro_open(const char* device);
+
+
+
+/** Serial commands API */
+
+/** Set target */
+
+/**
+ * @brief Maestro set target (Pololu protocol)
+ */
+int maestro_pololu_set_target();
+
+/**
+ * @brief Maestro set target (Compact protocol)
+ */
+int maestro_compact_set_target();
+
+/**
+ * @brief Maestro set target (MiniSSC protocol)
+ */
+int maestro_minissc_set_target();
+
+
+/** Set multiple target */
+/**
+ * @brief Maestro set multiple target (Pololu protocol)
+ * 
+ * For sending target bytes use maestro_send_target() function repeatedly.
+ */
+int maestro_pololu_set_multiple_target();
+
+/**
+ * @brief Maestro set multiple target (Compact protocol)
+ * 
+ * For sending target bytes use maestro_send_target() function repeatedly.
+ */
+int maestro_compact_set_multiple_target();
+
+/**
+ *  @brief Just sending target bytes
+ */
+int maestro_send_target();
+
+
+/** Other commands */
+
+
+
+/** Scripts API */
+
+#endif /* MPOLOLU_H */
