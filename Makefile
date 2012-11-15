@@ -1,7 +1,8 @@
 INCDIR = inc
 SRCDIR = src
 OBJDIR = obj
-LIBDIR = .
+LIBDIR = lib
+BINDIR = bin
 
 CC=gcc
 
@@ -15,15 +16,15 @@ all: $(TARGET) $(EXAMPLES)
 
 
 mpololu: $(OBJDIR)/mpololu.o
-	$(CC) -shared $(LDFLAGS) -o libmpololu.so 
+	$(CC) -shared $(LDFLAGS) -o $(LIBDIR)/libmpololu.so 
 
 
 $(OBJDIR)/mpololu.o: $(SRCDIR)/mpololu.c
-	$(CC) $(CFLAGS) -fPIC $(SRCDIR)/mpololu.c
+	$(CC) $(CFLAGS) -fPIC $(SRCDIR)/mpololu.c -o $@
 
 
 example: $(OBJDIR)/example.o
-	$(CC) $(OBJDIR)/example.o -o example -l$(TARGET) 
+	$(CC) $(OBJDIR)/example.o -o $(BINDIR)/example -l$(TARGET) 
 
 
 $(OBJDIR)/example.o: $(SRCDIR)/example.c
@@ -31,4 +32,4 @@ $(OBJDIR)/example.o: $(SRCDIR)/example.c
 
 
 clean:
-	rm -rf $(OBJDIR)/* libmpololu.so $(EXAMPLES)
+	rm -rf $(OBJDIR)/* $(BINDIR)/* $(LIBDIR)/*
