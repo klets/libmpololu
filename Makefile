@@ -6,11 +6,11 @@ BINDIR = bin
 
 CC=gcc
 
-CFLAGS=-g -c -Wall -pedantic -I$(INCDIR) -L$(LIBDIR)
-LDFLAGS = -lc
+CFLAGS=-g -c -Wall -pedantic -I$(INCDIR) 
+LDFLAGS = -lc 
 
 TARGET = mpololu
-EXAMPLES = example
+EXAMPLES = mpololu_cmd
 
 all: $(TARGET) $(EXAMPLES)
 
@@ -23,12 +23,12 @@ $(OBJDIR)/mpololu.o: $(SRCDIR)/mpololu.c
 	$(CC) $(CFLAGS) -fPIC $(SRCDIR)/mpololu.c -o $@
 
 
-example: $(OBJDIR)/example.o
-	$(CC) $(OBJDIR)/example.o -o $(BINDIR)/example -l$(TARGET) 
+mpololu_cmd: $(OBJDIR)/mpololu_cmd.o
+	$(CC) -L$(LIBDIR) $(OBJDIR)/mpololu_cmd.o -o $(BINDIR)/mpololu_cmd -l$(TARGET) 
 
 
-$(OBJDIR)/example.o: $(SRCDIR)/example.c
-	$(CC) $(CFLAGS) $(SRCDIR)/example.c	
+$(OBJDIR)/mpololu_cmd.o: $(SRCDIR)/mpololu_cmd.c
+	$(CC) $(CFLAGS) $(SRCDIR)/mpololu_cmd.c -o $@
 
 
 clean:
