@@ -68,6 +68,14 @@
 
 
 
+static void dump_cmd(uint8_t* cmd, int32_t len)
+{
+	int i = 0;
+	printf("write command: \n");
+	for (i = 0; i < len; i++) {
+		printf("\t0x%X\n",cmd[i]);
+	}
+}
 /**
  * @brief Open serial interface
  *  
@@ -93,7 +101,10 @@ int32_t maestro_open(const char* device)
 	tcgetattr(fd, &options);
 	options.c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
 	options.c_oflag &= ~(ONLCR | OCRNL);
+	/* cfsetispeed(&options, B9600); */
+	/* cfsetospeed(&options, B9600); */
 	tcsetattr(fd, TCSANOW, &options);
+	
    
 	return fd;
 }
@@ -128,7 +139,7 @@ int32_t maestro_pololu_set_target(int32_t fd, uint8_t device, uint8_t channel, u
 	command[4] = target & 0x7F;
 	command[5] = (target >> 7) & 0x7F;
 	
-	
+	dump_cmd(command, sizeof (command));
 
 	if ((wr = write(fd, command, sizeof(command))) != sizeof(command)) {
 		perror("error writing");
@@ -146,11 +157,14 @@ int32_t maestro_compact_set_target(int32_t fd, uint8_t channel, uint16_t target)
 	uint8_t command[4];
 	int wr = 0;
 		
+	
 	command[0] = COMPACT_SET_TARGET;
 	command[1] = channel;
 	command[2] = target & 0x7F;
 	command[3] = (target >> 7) & 0x7F;   
 		
+	dump_cmd(command, sizeof (command));
+
 	if ((wr = write(fd, command, sizeof(command))) != sizeof(command)) {
 		perror("error writing");
 		return -1;
@@ -171,7 +185,7 @@ int32_t maestro_minissc_set_target(int32_t fd, uint8_t channel, uint16_t target)
 	command[0] = MINISSC_PROTO_ON;
 	command[1] = channel;
 	command[2] = target;	
-	
+	dump_cmd(command, sizeof (command));	
 	if ((wr = write(fd, command, sizeof(command))) != sizeof(command)) {
 		perror("error writing");
 		return -1;
@@ -195,7 +209,7 @@ int32_t maestro_pololu_set_multiple_target(int32_t fd, uint8_t device, uint8_t t
 	command[2] = POLOLU_SET_MULTARGET;
 	command[3] = targets_num;
 	command[4] = first_channel;
-		
+	dump_cmd(command, sizeof (command));
 	if ((wr = write(fd, command, sizeof(command))) != sizeof(command)) {
 		perror("error writing");
 		return -1;
@@ -217,7 +231,7 @@ int32_t maestro_compact_set_multiple_target(int32_t fd, uint8_t targets_num, uin
 	command[0] = COMPACT_SET_MULTARGET;
 	command[1] = targets_num;
 	command[2] = first_channel;
-			
+	dump_cmd(command, sizeof (command));			
 	if ((wr = write(fd, command, sizeof(command))) != sizeof(command)) {
 		perror("error writing");
 		return -1;
@@ -237,7 +251,7 @@ int32_t maestro_send_target(int32_t fd, uint16_t target)
 	
 	command[0] = target & 0x7F;
 	command[1] = (target >> 7) & 0x7F;   
-	
+	dump_cmd(command, sizeof (command));
 	if ((wr = write(fd, command, sizeof(command))) != sizeof(command)) {
 		perror("error writing");
 		return -1;
@@ -261,7 +275,7 @@ int32_t maestro_pololu_set_speed(int32_t fd, uint8_t device, uint8_t channel, ui
 	command[3] = channel;
 	command[4] = speed & 0x7F;
 	command[5] = (speed >> 7) & 0x7F;   
-	
+	dump_cmd(command, sizeof (command));
 	if ((wr = write(fd, command, sizeof(command))) != sizeof(command)) {
 		perror("error writing");
 		return -1;
@@ -282,7 +296,7 @@ int32_t maestro_compact_set_speed(int32_t fd, uint8_t channel, uint16_t speed)
 	command[1] = channel;
 	command[2] = speed & 0x7F;
 	command[3] = (speed >> 7) & 0x7F;	
-	
+	dump_cmd(command, sizeof (command));
 	if ((wr = write(fd, command, sizeof(command))) != sizeof(command)) {
 		perror("error writing");
 		return -1;
@@ -305,7 +319,7 @@ int32_t maestro_pololu_set_acceleration(int32_t fd, uint8_t device, uint8_t chan
 	command[3] = channel;
 	command[4] = acceleration & 0x7F;
 	command[5] = (acceleration >> 7) & 0x7F;   
-	
+	dump_cmd(command, sizeof (command));
 	if ((wr = write(fd, command, sizeof(command))) != sizeof(command)) {
 		perror("error writing");
 		return -1;
@@ -326,7 +340,7 @@ int32_t maestro_compact_set_acceleration(int32_t fd, uint8_t channel, uint16_t a
 	command[1] = channel;
 	command[2] = acceleration & 0x7F;
 	command[3] = (acceleration >> 7) & 0x7F;
-		
+	dump_cmd(command, sizeof (command));		
 	if ((wr = write(fd, command, sizeof(command))) != sizeof(command)) {
 		perror("error writing");
 		return -1;
@@ -350,7 +364,7 @@ int32_t maestro_pololu_set_pwm(int32_t fd, uint8_t device, uint16_t on_time, uin
 	command[4] = (on_time >> 7) & 0x7F;
 	command[5] = period & 0x7F;
 	command[6] = (period >> 7) & 0x7F;   
-	
+	dump_cmd(command, sizeof (command));
 	if ((wr = write(fd, command, sizeof(command))) != sizeof(command)) {
 		perror("error writing");
 		return -1;
@@ -372,7 +386,7 @@ int32_t maestro_compact_set_pwm(int32_t fd, uint16_t on_time, uint16_t period)
 	command[2] = (on_time >> 7) & 0x7F;
 	command[3] = period & 0x7F;
 	command[4] = (period >> 7) & 0x7F;
-	
+	dump_cmd(command, sizeof (command));
 	if ((wr = write(fd, command, sizeof(command))) != sizeof(command)) {
 		perror("error writing");
 		return -1;
@@ -455,7 +469,7 @@ int32_t maestro_pololu_get_position(int32_t fd, uint8_t device, uint8_t channel,
 	command[1] = device;
 	command[2] = POLOLU_GET_POSITION;
 	command[3] = channel;
-
+	dump_cmd(command, sizeof (command));
 	res = maestro_get_small_answer(fd, &command[0], sizeof command, timeout, ANSWER_GET_POSITION_SIZE);
 
 	return res;
@@ -474,7 +488,7 @@ int32_t maestro_compact_get_position(int32_t fd, uint8_t channel, struct timeval
 
 	command[0] = COMPACT_GET_POSITION;
 	command[1] = channel;
-	
+	dump_cmd(command, sizeof (command));
 	res = maestro_get_small_answer(fd, &command[0], sizeof command, timeout, ANSWER_GET_POSITION_SIZE);
 	
 	return res;
@@ -494,7 +508,7 @@ int32_t maestro_pololu_is_moving(int32_t fd, uint8_t device, struct timeval* tim
 	command[0] = POLOLU_PROTO_ON;
 	command[1] = device;
 	command[2] = POLOLU_GET_MOVING_STATE;
-	
+	dump_cmd(command, sizeof (command));
 	res = maestro_get_small_answer(fd, &command[0], sizeof command, timeout, ANSWER_IS_MOVING_SIZE);
 	
 	return res;
@@ -509,7 +523,7 @@ int32_t maestro_compact_is_moving(int32_t fd, struct timeval* timeout)
 {
 	int32_t res = 0;
 	uint8_t command[1] = {COMPACT_GET_MOVING_STATE};
-	
+	dump_cmd(command, sizeof (command));
 	res = maestro_get_small_answer(fd, &command[0], sizeof command, timeout, ANSWER_IS_MOVING_SIZE);
 	
 	return res;
@@ -528,7 +542,7 @@ int32_t maestro_pololu_get_errors(int32_t fd, uint8_t device, struct timeval* ti
 	command[0] = POLOLU_PROTO_ON;
 	command[1] = device;
 	command[2] = POLOLU_GET_ERRORS;
-	
+	dump_cmd(command, sizeof (command));
 	res = maestro_get_small_answer(fd, &command[0], sizeof command, timeout, ANSWER_GET_ERRORS_SIZE);
 	
 	return res;
@@ -543,7 +557,7 @@ int32_t maestro_compact_get_errors(int32_t fd, struct timeval* timeout)
 {
 	int32_t res = 0;
 	uint8_t command[1] = {COMPACT_GET_ERRORS};
-	
+	dump_cmd(command, sizeof (command));
 	res = maestro_get_small_answer(fd, &command[0], sizeof command, timeout, ANSWER_GET_ERRORS_SIZE);
 	
 	return res;
@@ -553,8 +567,7 @@ int32_t maestro_compact_get_errors(int32_t fd, struct timeval* timeout)
  *  @brief Go home (Pololu protocol)
  */
 int32_t maestro_pololu_go_home(int32_t fd, uint8_t device)
-{
-	
+{	
 	uint8_t command[3];
 	
 	int wr = 0;
@@ -562,7 +575,7 @@ int32_t maestro_pololu_go_home(int32_t fd, uint8_t device)
 	command[0] = POLOLU_PROTO_ON;
 	command[1] = device;
 	command[2] = POLOLU_GO_HOME;
-	
+	dump_cmd(command, sizeof (command));
 	if ((wr = write(fd, command, sizeof(command))) != sizeof(command)) {
 		perror("error writing");
 		return -1;
@@ -579,7 +592,7 @@ int32_t maestro_compact_go_home(int32_t fd)
 	uint8_t command[1] = {COMPACT_GO_HOME};
 	
 	int wr = 0;
-	
+	dump_cmd(command, sizeof (command));
 	if ((wr = write(fd, command, sizeof(command))) != sizeof(command)) {
 		perror("error writing");
 		return -1;
@@ -600,7 +613,7 @@ int32_t maestro_pololu_stop_script(int32_t fd, uint8_t device)
 	command[0] = POLOLU_PROTO_ON;
 	command[1] = device;
 	command[2] = POLOLU_STOP_SCRIPT;
-		
+	dump_cmd(command, sizeof (command));
 	if ((wr = write(fd, command, sizeof(command))) != sizeof(command)) {
 		perror("error writing");
 		return -1;
@@ -617,7 +630,7 @@ int32_t maestro_compact_stop_script(int32_t fd)
 	uint8_t command[] = {COMPACT_STOP_SCRIPT};
 	
 	int wr = 0;
-	
+	dump_cmd(command, sizeof (command));
 	if ((wr = write(fd, command, sizeof(command))) != sizeof(command)) {
 		perror("error writing");
 		return -1;
@@ -638,7 +651,7 @@ int32_t maestro_pololu_restart_script(int32_t fd, uint8_t device, uint8_t subrou
 	command[1] = device;
 	command[2] = POLOLU_RESTART_SCRIPT;
 	command[3] = subroutine_number;
-	
+	dump_cmd(command, sizeof (command));
 	if ((wr = write(fd, command, sizeof(command))) != sizeof(command)) {
 		perror("error writing");
 		return -1;
@@ -658,7 +671,7 @@ int32_t maestro_compact_restart_script(int32_t fd, uint8_t subroutine_number)
 	
 	command[0] = COMPACT_RESTART_SCRIPT;
 	command[1] = subroutine_number;
-	
+	dump_cmd(command, sizeof (command));
 	if ((wr = write(fd, command, sizeof(command))) != sizeof(command)) {
 		perror("error writing");
 		return -1;
@@ -684,7 +697,7 @@ int32_t maestro_pololu_restart_script_par(int32_t fd,
 	command[3] = subroutine_number;
 	command[4] = parameter & 0x7F;
 	command[5] = (parameter >> 7) & 0x7F;	
-	
+	dump_cmd(command, sizeof (command));
 	if ((wr = write(fd, command, sizeof(command))) != sizeof(command)) {
 		perror("error writing");
 		return -1;
@@ -707,7 +720,7 @@ int32_t maestro_compact_restart_script_par(int32_t fd,
 	command[1] = subroutine_number;
 	command[2] = parameter & 0x7F;
 	command[3] = (parameter >> 7) & 0x7F;
-	
+	dump_cmd(command, sizeof (command));
 	if ((wr = write(fd, command, sizeof(command))) != sizeof(command)) {
 		perror("error writing");
 		return -1;
@@ -728,7 +741,7 @@ int32_t maestro_pololu_is_stopped(int32_t fd, uint8_t device, struct timeval* ti
 	command[0] = POLOLU_PROTO_ON;
 	command[1] = device;
 	command[2] = POLOLU_GET_SCRIPT_STATUS;
-	
+	dump_cmd(command, sizeof (command));
 	res = maestro_get_small_answer(fd, &command[0], sizeof command, timeout, ANSWER_IS_STOPPED_SIZE);
 	
 	return res;
@@ -743,7 +756,7 @@ int32_t maestro_compact_is_stopped(int32_t fd, struct timeval* timeout)
 {
 	int32_t res = 0;
 	uint8_t command[1] = {COMPACT_GET_SCRIPT_STATUS};
-	
+	dump_cmd(command, sizeof (command));
 	res = maestro_get_small_answer(fd, &command[0], sizeof command, timeout, ANSWER_IS_STOPPED_SIZE);
 	
 	return res;   
