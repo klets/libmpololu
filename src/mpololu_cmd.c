@@ -42,6 +42,37 @@ char *device_file = "/dev/ttyACM0";
 
 struct timeval tv;
 
+
+static int32_t get_targets_list(char* file_name, uint16_t **targets_p)
+{
+	FILE* fp;
+	char line[LINE_MAX];   
+	int32_t sz = 0;
+
+	fprintf(stdout, "Processing file %s...\n", file);
+		
+	fp = fopen(file, "r");
+		
+	if (fp == NULL) {
+		perror("failed to open file");
+		return -1;			
+	}
+		
+	while (fgets(line, LINE_MAX, fp) != NULL) {
+		int target = atoi(line);
+		
+		fprintf(stdout, "Target %u...\n", (uint16_t) target);
+		
+		sz++;
+		
+		*targets_p = (uint16_t *) realloc(*targets_p, sz * sizeof(uint16_t));
+
+		(*targets_p)[sz - 1] = (uint16_t) target;
+	}		
+
+	return sz;
+}
+
 static void exec_cmds_compact (int32_t fd) 
 {	
 	/** Options */
@@ -96,9 +127,29 @@ static void exec_cmds_compact (int32_t fd)
 	/** Set targets */
 	if (mult_num != -1) {
 		if (mult_first != -1) {
-			if (maestro_compact_set_multiple_target(fd, (uint8_t)mult_num, (uint8_t) mult_first) < 0) {
-				fprintf(stderr, "Failed to set number of targets and first channel num\n");
-				return;
+			if (file) {
+				uint16_t *targets_p = NULL;
+				int32_t sz = get_targets_list(file, &targets_p);
+				if (sz > 0) {
+					if (sz < mult_num) {
+						fprintf(stderr, "Number of targets in %s less then specified mult-num value %d\n", file, mult_num);
+						free(targets_p);
+						return;
+					}
+					
+					if (maestro_compact_set_multiple_target(fd, 			                                        
+					                                       (uint8_t) mult_num, 
+					                                       (uint8_t) mult_first, 
+					                                       targets_p) < 0) {
+						fprintf(stderr, "Failed to set number of targets and first channel num\n");
+						free(targets_p);
+						return;
+					}
+					free(targets_p);
+				}
+			} else {
+				fprintf(stderr, "Use --file for specifying file name with targets list\n");			
+				return;				
 			}
 		} else {
 			fprintf(stderr, "Use --mult-first for specifying first channel\n");			
@@ -106,25 +157,18 @@ static void exec_cmds_compact (int32_t fd)
 		}
 	}
 	
-	
 	if (target != -1) {
-		if (channel != -1) {
-			if (ssc) {
-				if (maestro_minissc_set_target(fd, (channel == -1) ? 0: (uint8_t) channel, (uint16_t) target) < 0) {
-					fprintf(stderr, "Failed to set target\n");
-					return;
-				}
-			} else {
-				if (maestro_compact_set_target(fd, (channel == -1) ? 0: (uint8_t) channel, (uint16_t) target) < 0) {
-					fprintf(stderr, "Failed to set target\n");
-					return;
-				}				
-			}
-		} else {
-			if (maestro_send_target(fd, (uint16_t) target) < 0) {
+
+		if (ssc) {
+			if (maestro_minissc_set_target(fd, (channel == -1) ? 0: (uint8_t) channel, (uint8_t) target) < 0) {
 				fprintf(stderr, "Failed to set target\n");
 				return;
-			}							
+			}
+		} else {
+			if (maestro_compact_set_target(fd, (channel == -1) ? 0: (uint8_t) channel, (uint16_t) target) < 0) {
+				fprintf(stderr, "Failed to set target\n");
+				return;
+			}				
 		}
 	}
 
@@ -242,9 +286,30 @@ static void exec_cmds_pololu (int32_t fd)
 	/** Set targets */
 	if (mult_num != -1) {
 		if (mult_first != -1) {
-			if (maestro_pololu_set_multiple_target(fd, (uint8_t) device, (uint8_t)mult_num, (uint8_t) mult_first) < 0) {
-				fprintf(stderr, "Failed to set number of targets and first channel num\n");
-				return;
+			if (file) {
+				uint16_t *targets_p = NULL;
+				int32_t sz = get_targets_list(file, &targets_p);
+				if (sz > 0) {
+					if (sz < mult_num) {
+						fprintf(stderr, "Number of targets in %s less then specified mult-num value %d\n", file, mult_num);
+						free(targets_p);
+						return;
+					}
+					
+					if (maestro_pololu_set_multiple_target(fd, 
+					                                       (uint8_t) device, 
+					                                       (uint8_t) mult_num, 
+					                                       (uint8_t) mult_first, 
+					                                       targets_p) < 0) {
+						fprintf(stderr, "Failed to set number of targets and first channel num\n");
+						free(targets_p);
+						return;
+					}
+					free(targets_p);
+				}
+			} else {
+				fprintf(stderr, "Use --file for specifying file name with targets list\n");			
+				return;				
 			}
 		} else {
 			fprintf(stderr, "Use --mult-first for specifying first channel\n");			
@@ -254,23 +319,16 @@ static void exec_cmds_pololu (int32_t fd)
 		
 
 	if (target != -1) {
-		if (channel != -1) {
-			if (ssc) {
-				if (maestro_minissc_set_target(fd, (channel == -1) ? 0: (uint8_t) channel, (uint16_t) target) < 0) {
-					fprintf(stderr, "Failed to set target\n");
-					return;
-				}
-			} else {
-				if (maestro_pololu_set_target(fd, (uint8_t) device, (channel == -1) ? 0: (uint8_t) channel, (uint16_t) target) < 0) {
-					fprintf(stderr, "Failed to set target\n");
-					return;
-				}				
-			}
-		} else {
-			if (maestro_send_target(fd, (uint16_t) target) < 0) {
+		if (ssc) {
+			if (maestro_minissc_set_target(fd, (channel == -1) ? 0: (uint8_t) channel, (uint8_t) target) < 0) {
 				fprintf(stderr, "Failed to set target\n");
 				return;
-			}							
+			}
+		} else {
+			if (maestro_pololu_set_target(fd, (uint8_t) device, (channel == -1) ? 0: (uint8_t) channel, (uint16_t) target) < 0) {
+				fprintf(stderr, "Failed to set target\n");
+				return;
+			}				
 		}
 	}
 	
@@ -337,11 +395,8 @@ static void exec_cmds_pololu (int32_t fd)
 static void exec_cmds (void)
 {
 	int32_t fd;
-	char line[LINE_MAX];
 	
-	fd = maestro_open(device_file);
-	
-	printf("Device opened\n");
+	fd = maestro_open(device_file);   
 	
 	if (fd == -1) {
 		fprintf(stderr, "Failed to open %s", device_file);
@@ -354,29 +409,6 @@ static void exec_cmds (void)
 		exec_cmds_compact(fd);
 	}
 
-	if (file) {
-		FILE* fp;
-		fprintf(stdout, "Processing file %s...\n", file);
-		
-		fp = fopen(file, "r");
-		
-		if (fp == NULL) {
-			perror("failed to open file");
-			return;			
-		}
-		
-		while (fgets(line, LINE_MAX, fp) != NULL) {
-			int target = atoi(line);
-			
-			fprintf(stdout, "Target %u...\n", (uint16_t) target);
-			
-			if (maestro_send_target(fd, (uint16_t) target) < 0) {
-				fprintf(stderr, "Failed to set target\n");
-				return;
-			}									   			
-		}
-	}
-	
 	maestro_close(fd);
 }
 
@@ -387,7 +419,7 @@ static void pr_help (char* prog_name)
 	printf("\t --device,d NUM\t\t\t set device num and use Pololu protocol, default 0 and use Compact protocol\n");
 	printf("\t --channel,c NUM\t\t set channel, default 0\n");
 	printf("\t --target,t VALUE\t\t set target (0 - 16383 us, in 0.25 us units), default 0\n");
-	printf("\t --ssc \t\t\t\t\t use MiniSSC protocol for setting target\n\n");
+	printf("\t --ssc \t\t\t\t\t use MiniSSC protocol for setting target. Target value must be 8-bit. Value is interpreting relative to range of servo and Maestro Pololu settings.\n\n");
 
 	printf("\t --speed,s VALUE\t\t set speed limit (in 0.025 us/ms units), 0 -- unlimited speed, default 0\n");
 	printf("\t --acceleration,a VALUE\t set acceleration limit (in 0.025/80 us/(ms * ms) units), 0 -- unlimited acceleration, default 0\n");

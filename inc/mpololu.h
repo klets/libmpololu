@@ -25,13 +25,22 @@ extern "C" {
 	/**
 	 * @brief Open serial interface
 	 *  
-	 *  @retval File desriptor of opened interface
+	 * @details works +
+	 *
+	 * @param device -- name of COM-port device file
+	 *
+	 * @retval File desriptor of opened interface or -1 if error occured
 	 */
 	int32_t maestro_open(const char* device);
 
 	/**
 	 * @brief Close serial interface
-	 *  
+	 *	
+	 * @details works +
+	 *
+	 * @param fd -- file dsecriptor of opened COM-port
+	 *
+	 * @retval 0 -- success, -1 -- failed
 	 */
 	int32_t maestro_close(int32_t fd);
 
@@ -43,59 +52,84 @@ extern "C" {
 
 	/**
 	 * @brief Maestro set target (Pololu protocol)
+	 *
+	 * @details works +
+	 *
+	 * @param fd -- file descriptor of opened COM-port
+	 * @param device -- device number
+	 * @param channel -- device channel number
+	 * @param target -- absolute angle of rotation in 0.25 us
+	 *
+	 * @retval 0 -- success, -1 -- failed
 	 */
 	int32_t maestro_pololu_set_target(int32_t fd, uint8_t device, uint8_t channel, uint16_t target);
 
 	/**
 	 * @brief Maestro set target (Compact protocol)
+	 *
+	 * @details works +
+	 *
+	 * @param fd -- file descriptor of opened COM-port
+	 * @param channel -- device channel number
+	 * @param target -- absolute angle of rotation in 0.25 us
+	 *
+	 * @retval 0 -- success, -1 -- failed
 	 */
 	int32_t maestro_compact_set_target(int32_t fd, uint8_t channel, uint16_t target);
 
 	/**
 	 * @brief Maestro set target (MiniSSC protocol)
+	 * 
+	 * @details works +.  The 8-bit target value is converted to a full-resolution target value according to 
+	 * the range and neutral settings stored on the Maestro for that channel. Specifically, an 8-bit target 
+	 * of 127 corresponds to the neutral setting for that channel, while 0 or 254 correspond to the neutral
+	 * setting minus or plus the range setting. These settings can be useful for calibrating motion without
+	 * changing the program sending serial commands.
+	 *
+	 * @param fd -- file descriptor of opened COM-port
+	 * @param channel -- device channel number
+	 * @param target -- 8-bit target value. Value is interprets relative to range of servo
+	 * and Maestro Pololu min/max settings.
+	 *
+	 * @retval 0 -- success, -1 -- failed	 
 	 */
-	int32_t maestro_minissc_set_target(int32_t fd, uint8_t channel, uint16_t target);
+	int32_t maestro_minissc_set_target(int32_t fd, uint8_t channel, uint8_t target);
 
 
 
 	/** Set multiple target */
 	/**
 	 * @brief Maestro set multiple target (Pololu protocol)
-	 * 
-	 * For sending target bytes use maestro_send_target() function repeatedly.
+	 * works+
 	 */
-	int32_t maestro_pololu_set_multiple_target(int32_t fd, uint8_t device, uint8_t targets_num, uint8_t first_channel);
+	int32_t maestro_pololu_set_multiple_target(int32_t fd, uint8_t device, uint8_t targets_num, uint8_t first_channel, uint16_t* targets_p);
 
 	/**
 	 * @brief Maestro set multiple target (Compact protocol)
-	 * 
-	 * For sending target bytes use maestro_send_target() function repeatedly.
+	 * works+
 	 */
-	int32_t maestro_compact_set_multiple_target(int32_t fd, uint8_t targets_num, uint8_t first_channel);
-
-	/**
-	 *  @brief Just sending target bytes
-	 */
-	int32_t maestro_send_target(int32_t fd, uint16_t target);
-
+	int32_t maestro_compact_set_multiple_target(int32_t fd, uint8_t targets_num, uint8_t first_channel, uint16_t* targets_p);
 
 
 	/** Other commands */
 
 	/**
 	 *  @brief Set speed
+	 * works+
 	 */
 	int32_t maestro_pololu_set_speed(int32_t fd, uint8_t device, uint8_t channel, uint16_t speed);
 	int32_t maestro_compact_set_speed(int32_t fd, uint8_t channel, uint16_t speed);
 
 	/**
 	 *  @brief Set acceleration
+	 * works+
 	 */
 	int32_t maestro_pololu_set_acceleration(int32_t fd, uint8_t device, uint8_t channel, uint16_t acceleration);
 	int32_t maestro_compact_set_acceleration(int32_t fd, uint8_t channel, uint16_t acceleration);
 
 	/**
 	 *  @brief Set PWM
+	 * not tested
 	 */
 	int32_t maestro_pololu_set_pwm(int32_t fd, uint8_t device, uint16_t on_time, uint16_t period);
 	int32_t maestro_compact_set_pwm(int32_t fd, uint16_t on_time, uint16_t period);

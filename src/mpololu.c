@@ -177,7 +177,7 @@ int32_t maestro_compact_set_target(int32_t fd, uint8_t channel, uint16_t target)
 /**
  * @brief Maestro set target (MiniSSC protocol)
  */
-int32_t maestro_minissc_set_target(int32_t fd, uint8_t channel, uint16_t target)
+int32_t maestro_minissc_set_target(int32_t fd, uint8_t channel, uint8_t target)
 {
 	uint8_t command[3];
 	int wr = 0;
@@ -197,20 +197,34 @@ int32_t maestro_minissc_set_target(int32_t fd, uint8_t channel, uint16_t target)
 /**
  * @brief Maestro set multiple target (Pololu protocol)
  * 
- * For sending target bytes use maestro_send_target() function repeatedly.
  */
-int32_t maestro_pololu_set_multiple_target(int32_t fd, uint8_t device, uint8_t targets_num, uint8_t first_channel)
+int32_t maestro_pololu_set_multiple_target(int32_t fd, uint8_t device, uint8_t targets_num, uint8_t first_channel, uint16_t* targets_p)
 {
-	uint8_t command[5];
+	uint8_t *command;	
 	int wr = 0;
+	int i;
 
+	size_t cmd_sz = 5 /* command header*/ + 2 * targets_num;
+	
+	if ((targets_p == NULL) & (targets_num != 0)) {
+		fprintf(stderr, "NULL pointer\n");
+		return -1;
+	}
+
+	command = (uint8_t*) calloc(cmd_sz, sizeof(uint8_t));
 	command[0] = POLOLU_PROTO_ON;
 	command[1] = device;
 	command[2] = POLOLU_SET_MULTARGET;
 	command[3] = targets_num;
 	command[4] = first_channel;
-	dump_cmd(command, sizeof (command));
-	if ((wr = write(fd, command, sizeof(command))) != sizeof(command)) {
+	
+	for (i = 0; i < targets_num; i++) {
+		command[5 + 2 * i] = targets_p[i] & 0x7F;
+		command[6 + 2 * i] = (targets_p[i] >> 7) & 0x7F;
+	}
+	
+	dump_cmd(command, cmd_sz);
+	if ((wr = write(fd, command, cmd_sz)) != cmd_sz) {
 		perror("error writing");
 		return -1;
 	}
@@ -223,36 +237,32 @@ int32_t maestro_pololu_set_multiple_target(int32_t fd, uint8_t device, uint8_t t
  * 
  * For sending target bytes use maestro_send_target() function repeatedly.
  */
-int32_t maestro_compact_set_multiple_target(int32_t fd, uint8_t targets_num, uint8_t first_channel)
+int32_t maestro_compact_set_multiple_target(int32_t fd, uint8_t targets_num, uint8_t first_channel, uint16_t* targets_p)
 {
-	uint8_t command[3];
+	uint8_t *command;	
 	int wr = 0;
+	int i;
+
+	size_t cmd_sz = 3 /* command header*/ + 2 * targets_num;
+	
+	if ((targets_p == NULL) & (targets_num != 0)) {
+		fprintf(stderr, "NULL pointer\n");
+		return -1;
+	}
+
+	command = (uint8_t*) calloc(cmd_sz, sizeof(uint8_t));
 	
 	command[0] = COMPACT_SET_MULTARGET;
 	command[1] = targets_num;
 	command[2] = first_channel;
-	dump_cmd(command, sizeof (command));			
-	if ((wr = write(fd, command, sizeof(command))) != sizeof(command)) {
-		perror("error writing");
-		return -1;
+
+	for (i = 0; i < targets_num; i++) {
+		command[3 + 2 * i] = targets_p[i] & 0x7F;
+		command[4 + 2 * i] = (targets_p[i] >> 7) & 0x7F;
 	}
 	
-	return 0;
-
-}
-
-/**
- *  @brief Just sending target bytes
- */
-int32_t maestro_send_target(int32_t fd, uint16_t target)
-{
-	uint8_t command[2];
-	int wr = 0;
-	
-	command[0] = target & 0x7F;
-	command[1] = (target >> 7) & 0x7F;   
-	dump_cmd(command, sizeof (command));
-	if ((wr = write(fd, command, sizeof(command))) != sizeof(command)) {
+	dump_cmd(command, cmd_sz);
+	if ((wr = write(fd, command, cmd_sz)) != cmd_sz) {
 		perror("error writing");
 		return -1;
 	}
