@@ -4,6 +4,8 @@ OBJDIR = obj
 LIBDIR = lib
 BINDIR = bin
 
+OUT_DIR = $(BINDIR) $(LIBDIR) $(OBJDIR)
+
 CC=gcc
 
 LDFLAGS =  -L$(PWD)/$(LIBDIR)
@@ -12,7 +14,13 @@ CFLAGS=-g -c -Wall -pedantic -I$(INCDIR) $(LDFLAGS)
 TARGET = mpololu
 EXAMPLES = mpololu_cmd
 
-all: $(TARGET) $(EXAMPLES)
+MKDIR_P = mkdir -p
+
+.PHONY: directories
+
+
+
+all: directories $(TARGET) $(EXAMPLES)
 
 
 mpololu: $(OBJDIR)/mpololu.o
@@ -31,5 +39,10 @@ $(OBJDIR)/mpololu_cmd.o: $(SRCDIR)/mpololu_cmd.c
 	$(CC) $(CFLAGS) $^ -o $@
 
 
+directories: ${OUT_DIR}
+
+${OUT_DIR}:
+	${MKDIR_P} ${OUT_DIR}
+
 clean:
-	rm -rf $(OBJDIR)/* $(BINDIR)/* $(LIBDIR)/*
+	rm -rf $(OUT_DIR)
