@@ -18,8 +18,6 @@ MKDIR_P = mkdir -p
 
 .PHONY: directories
 
-
-
 all: directories $(TARGET) $(EXAMPLES)
 
 
