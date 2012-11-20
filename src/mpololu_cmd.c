@@ -43,6 +43,46 @@ char *device_file = "/dev/ttyACM0";
 struct timeval tv;
 
 
+static void pr_errors (uint16_t err_code) 
+{
+	if (err_code & POLOLU_ERR_SIG) {
+		fprintf(stdout, "Serial Signal Error\n");
+	}
+
+	if (err_code & POLOLU_ERR_OVR) {
+		fprintf(stdout, "Serial Overrun Error\n");
+	}
+
+	if (err_code & POLOLU_ERR_RX) {
+		fprintf(stdout, "Serial RX buffer full\n");
+	}
+
+	if (err_code & POLOLU_ERR_CRC) {
+		fprintf(stdout, "Serial CRC error\n");
+	}
+
+	if (err_code & POLOLU_ERR_PROTO) {
+		fprintf(stdout, "Serial protocol error \n");
+	}
+
+	if (err_code & POLOLU_ERR_TIMEOUT) {
+		fprintf(stdout, "Serial timeout error \n");
+	}
+
+	if (err_code & POLOLU_ERR_STACK) {
+		fprintf(stdout, "Serial stack error \n");
+	}
+
+	if (err_code & POLOLU_ERR_CALLSTACK) {
+		fprintf(stdout, "Serial call stack error \n");
+	}
+
+	if (err_code & POLOLU_ERR_COUNTER) {
+		fprintf(stdout, "Serial program counter error \n");
+	}
+
+}
+
 static int32_t get_targets_list(char* file_name, uint16_t **targets_p)
 {
 	FILE* fp;
@@ -223,6 +263,7 @@ static void exec_cmds_compact (int32_t fd)
 			return;
 		}		
 		fprintf(stdout, "ERRORS: 0x%X\n", (uint16_t)(res & 0xFFFF));				
+		pr_errors((uint16_t)(res & 0xFFFF));
 	}	
 	
 	if (go_home) {
@@ -381,6 +422,7 @@ static void exec_cmds_pololu (int32_t fd)
 			return;
 		}		
 		fprintf(stdout, "ERRORS: 0x%X\n", (uint16_t)(res & 0xFFFF));				
+		pr_errors((uint16_t)(res & 0xFFFF));
 	}	
 	
 	if (go_home) {
