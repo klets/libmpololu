@@ -473,7 +473,7 @@ static void pr_help (char* prog_name)
 	printf("\t Setting multiple targets command: \n");
 	printf("\t --mult_num NUM\t\t\t set multiple targets num, default 0\n");
 	printf("\t --mult_first NUM\t\t set first channel for multiple targets command, default 0\n");
-	printf("\t ...then you can use file with targets list or this program with only \"--target,t\" option: \n");
+	printf("\t ...and you must use file with targets list: \n");
 	printf("\t --file FILE \t\t\t set file source for list of targets\n\n");
 
 	printf("\t Status commands: \n");
